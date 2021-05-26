@@ -20,47 +20,64 @@ class Filtered
     end
     attr_reader :src, :filter, :paged
 
+    # Join two filter using a or operation
     def |(o)
         _operator_2('|', o)
     end
 
+    # Join two filter using a and operation
     def &(o)
         _operator_2('&', o)
     end
 
+    # Take the negation of this fileter
     def ~@
         _operator_1('!')
     end
 
-    def respond_to_missing?(method_name, include_private = false)
-        @src.ldap_listing.include?(method_name) || super
-    end
-    
-    def method_missing(method_name, *args, &block)
-        if @src.ldap_listing.include?(method_name)
-            self & @src.send(method_name, *args, &block)
-        else
-            super
-        end        
-    end
 
+    # Ask for paginated data.
+    #
+    # @note That is not supported by net/ldap and is emulated by taking
+    #       a slice of the retrieved data. Avoid using.
+    #
+    # @param [Integer] page index (starting from 1)
+    # @param [Integer] page size
+    #
+    # @return [self]
     def paginate(page, page_size)
         @paged = [ page, page_size ]
+        self
     end
-    
+
+    # Iterate over matching data
     def each(*args, &block)
         @src.each(*args, filter: @filter, paged: self.paged, &block)
     end
 
+    # Retrieve matching data as a list of object
+    #
+    # @return [Array<Object>]
+    #
     def all
         each(:object).to_a
     end
 
+    # Retrieve matching data as a list of id
+    #
+    # @return [Array<String>]
+    #
     def list
         each(:id).to_a
     end
 
-
+    # Escape (and convert) a value for correct processing.
+    #
+    # Before escaping, the value will be converted to string using
+    # if possible #to_ldap, #to_str, and #to_s in case of symbol
+    #
+    # @param [Object] val value to be escaped
+    #
     def self.escape(val)
         val = if    val.respond_to?(:to_ldap) then val.to_ldap
               elsif val.respond_to?(:to_str ) then val.to_str
@@ -117,7 +134,8 @@ class Filtered
     end
 
     private
-    
+
+    # Operation with 2 elements
     def _operator_2(op, o)
         if @src != o.src
             raise ArgumentError, 'filter defined with different sources'
@@ -129,9 +147,24 @@ class Filtered
         Filtered.new(@src, _filter, paged: o.paged || self.paged)
     end
 
+    # Operation with 1 element
     def _operator_1(op)
         Filtered.new(@src, Net::LDAP.filter(op, @filter),
                      paged: self.paged)
+    end
+
+    # Check if an ldap_list has been defined with that name
+    def respond_to_missing?(method_name, include_private = false)
+        @src.ldap_listing.include?(method_name) || super
+    end
+    
+    # Call the ldap_list defined with that name
+    def method_missing(method_name, *args, &block)
+        if @src.ldap_listing.include?(method_name)
+            self & @src.send(method_name, *args, &block)
+        else
+            super
+        end        
     end
     
 end

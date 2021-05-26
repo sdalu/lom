@@ -42,6 +42,7 @@ class LOM
     end
 
     # Set debugging mode
+    # @param [Array<:dry,:verbose>] debugging options
     def self.debug=(v)
         @@debug = v
     end

@@ -8,6 +8,14 @@ class LOM
         @lh = lh
     end
 
+    # Get the LDAP handler to use
+    #
+    # In order of preference:
+    #
+    # * the handler set using lh=
+    # * the LH constant in this scope or parent scope
+    # * the one defined in $lh
+    #
     def self.lh
         @lh || const_get(:LH) || $lh
     end   

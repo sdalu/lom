@@ -19,26 +19,26 @@ end
 
 # Provide refinements to ease development with the net/ldap library:
 #
-# - Net::LDAP instance can be created from an URI
+# * Net::LDAP instance can be created from an URI
 #   using Net::LDAP.connect
 #
-# - Net::LDAP#search can use symbols for
+# * Net::LDAP#search can use symbols for
 #      scope: :base, :one, :sub
 #      deref: :never, :search, :find, :always
 #
-# - Net::LDAP#get method allows retrieving the first entry of a DN
+# * Net::LDAP#get method allows retrieving the first entry of a DN
 #   (it is just a customized search query)
 #
-# - Net::LDAP#update method that try to intelligently update an
+# * Net::LDAP#update method that try to intelligently update an
 #   LDAP attribute (to be used instead of Net::LDAP#modify)
 #
-# - Net::LDAP::Entry has been enhanced to easy casting of retrieved
+# * Net::LDAP::Entry has been enhanced to easy casting of retrieved
 #   attributes
 #
-# - Net::LDAP::DN.sub? has been added to test if a DN is included
+# * Net::LDAP::DN.sub? has been added to test if a DN is included
 #   in another, and will return the sub part
 #
-# - Net::LDAP::DN.escape and Net::LDAP:Filter.escape have been
+# * Net::LDAP::DN.escape and Net::LDAP:Filter.escape have been
 #   redefined to fix some issues
 #
 module Extensions

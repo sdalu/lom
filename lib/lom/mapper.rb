@@ -32,7 +32,7 @@ module InstanceMethods
 
     # Save object to ldap.
     #
-    # If object already exists, it will be updated otherwise created
+    # If object already exists, it will be updated otherwise created.
     #
     # @return [true, false]
     #
@@ -84,41 +84,23 @@ module Mapper
         @__ldap_lh        = nil
     end
 
+    # Get the LDAP handler to use
+    #
+    # In order of preference:
+    #
+    # * the handler set using lh=
+    # * the LH constant in this scope or parent scope
+    # * the one provided by LOM.lh
+    #
     def lh
         @__ldap_lh || const_get(:LH) || LOM.lh
     end
-    
+
+    # Set the LDAP handler to use
     def lh=(lh)
         @__ldap_lh = lh
     end
         
-    def _ldap_branch
-        @__ldap_branch || (raise MappingError, 'ldap_branch not defined')
-    end
-
-    def _ldap_prefix
-        @__ldap_prefix || (raise MappingError, 'ldap_prefix not defined')
-    end
-
-    def _ldap_scope
-        @__ldap_scope
-    end
-
-    def _ldap_filter
-        @__ldap_filter
-    end
-
-    def _ldap_attrs
-        @__ldap_attrs
-    end
-
-    def _ldap_from
-        @__ldap_from   || (raise MappingError, 'ldap_from not defined'  )
-    end
-
-    def _ldap_to
-        @__ldap_to     || (raise MappingError, 'ldap_to not defined'    )
-    end
 
     def ldap_listing
         @__ldap_list
@@ -279,5 +261,36 @@ module Mapper
     end
 
     alias [] get
+
+    private
+    
+    def _ldap_branch
+        @__ldap_branch || (raise MappingError, 'ldap_branch not defined')
+    end
+
+    def _ldap_prefix
+        @__ldap_prefix || (raise MappingError, 'ldap_prefix not defined')
+    end
+
+    def _ldap_scope
+        @__ldap_scope
+    end
+
+    def _ldap_filter
+        @__ldap_filter
+    end
+
+    def _ldap_attrs
+        @__ldap_attrs
+    end
+
+    def _ldap_from
+        @__ldap_from   || (raise MappingError, 'ldap_from not defined'  )
+    end
+
+    def _ldap_to
+        @__ldap_to     || (raise MappingError, 'ldap_to not defined'    )
+    end
+
 end
 end
