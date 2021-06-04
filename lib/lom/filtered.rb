@@ -117,6 +117,15 @@ class Filtered
         end
     end
 
+    # Test if an attribute match the specified value
+    def self.match(attr, val, predicate: true)
+        case predicate
+        when true,  nil then   "(#{attr}=*#{escape(val)}*)"
+        when false      then "(!(#{attr}=*#{escape(val)}*))"
+        else raise ArgumentError
+        end
+    end
+
     # Test if an attribute as a time before the specified timestamp
     # If an integer is given it is added to the today date
     def self.before(attr, ts, predicate: true)
