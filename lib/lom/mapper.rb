@@ -118,7 +118,7 @@ module Mapper
         @__ldap_list << name
         define_singleton_method(name) do |*args|
             filter = body.call(*args)
-            LOM::Filtered.new(self, filter)
+            LOM::Filtered.new(filter, src: self)
         end
     end
 
@@ -236,7 +236,7 @@ module Mapper
     end
 
     def paginate(page, page_size)
-        LOM::Filtered.new(self, paged: [ page, page_size ])
+        LOM::Filtered.new(src: self, paged: [ page, page_size ])
     end
   
     def all
