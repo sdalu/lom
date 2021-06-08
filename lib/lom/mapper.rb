@@ -101,7 +101,10 @@ module Mapper
         @__ldap_lh = lh
     end
         
-
+    # Return the list of defined list (using ldap_list).
+    #
+    # @return [Array<Symbol>] list of defined ldap list
+    #
     def ldap_listing
         @__ldap_list
     end
