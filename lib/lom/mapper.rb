@@ -162,7 +162,12 @@ module Mapper
     end
 
 
-    
+    # Convert a dn to it's corresponding id the current mapping.
+    #
+    # @raise [Error]   the provided dn doesn't belong to this mapping
+    #
+    # @return [String] id
+    #
     def ldap_dn_to_id(dn)
         prefix = _ldap_prefix.to_s
         branch = _ldap_branch
@@ -171,8 +176,8 @@ module Mapper
             case prefix
             when String, Symbol
                 k, v, _ = sub.to_a
-                raise ArgumentError, "not a direct child" if _
-                raise ArgumentError, "wrong prefix"       if k.casecmp(prefix) != 0
+                raise Error, "not a direct child" if _
+                raise Error, "wrong prefix"       if k.casecmp(prefix) != 0
                 v
             end
         end
