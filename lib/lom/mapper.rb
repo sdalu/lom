@@ -198,8 +198,7 @@ module Mapper
         end
 
         # Merging filters
-        filters = [ filter, _ldap_filter ].compact
-        filter  = filters.size == 2 ? "(&#{filters.join})" : filters.first
+        filter  = Net::LDAP.filter('&', *[ filter, _ldap_filter ].compact)
 
         # Define attributes/converter according to selected type
         attributes, converter =
