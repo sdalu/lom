@@ -60,25 +60,26 @@ class Filtered
     end
 
     # Iterate over matching data
-    def each(*args, &block)
+    def each(*args, rawfilter: nil, &block)
         raise NoSource if @src.nil?
-        @src.each(*args, filter: @filter, paged: self.paged, &block)
+        @src.each(*args, filter: @filter, rawfilter: rawfilter,
+                  paged: self.paged, &block)
     end
 
     # Retrieve matching data as a list of object
     #
     # @return [Array<Object>]
     #
-    def all
-        each(:object).to_a
+    def all(&rawfilter)
+        each(:object, rawfilter: rawfilter).to_a
     end
 
     # Retrieve matching data as a list of id
     #
     # @return [Array<String>]
     #
-    def list
-        each(:id).to_a
+    def list(&rawfilter)
+        each(:id, rawfilter: rawfilter).to_a
     end
 
     # Escape (and convert) a value for correct processing.

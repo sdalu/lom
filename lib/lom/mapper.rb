@@ -190,11 +190,28 @@ module Mapper
         self.new(*args)
     end
     
-    
-    def each(type = :object, filter: nil, paged: nil)
+
+    # Iterate over matching data.
+    #
+    # @note If using `rawfilter`, no optimization will be performed
+    #       aned the ldap attributes will be retrieved,
+    #       even if desired type is :id
+    #
+    # @param type      [:object, :id]           return object or id
+    # @param filter    [String]                 extra ldap search filter
+    # @param rawfilter [Proc]                   filter on ldap entry
+    # @param paged     [Array<Integer,Integer>] pagination information
+    #
+    # @yieldparam obj_or_id [Object, String] ldap converted element according to type
+    #
+    # @return [Enumerator] if no block given
+    # @return [self]       if block given
+    #
+    def each(type = :object, filter: nil, rawfilter: nil, paged: nil)
         # Create Enumerator if no block given
         unless block_given?
-            return enum_for(:each, type, filter: filter, paged: paged)
+            return enum_for(:each, type,
+                            filter: filter, rawfilter: rawfilter, paged: paged)
         end
 
         # Merging filters
@@ -203,10 +220,15 @@ module Mapper
         # Define attributes/converter according to selected type
         attributes, converter =
             case type
-            when :id     then [ :dn,         ->(e) { ldap_dn_to_id(e.dn) } ]
-            when :object then [ _ldap_attrs, ->(e) { _ldap_to_obj(e)     } ]
+            when :id     then [ rawfilter ? _ldap_attrs : :dn,
+                                ->(e) { ldap_dn_to_id(e.dn) }
+                              ]
+            when :object then [ _ldap_attrs,
+                                ->(e) { _ldap_to_obj(e)     }
+                              ]
             else raise ArgumentError, 'type must be either :object or :id'
             end
+
         
         # Paginate
         # XXX: pagination is emulated, should be avoided
@@ -221,7 +243,9 @@ module Mapper
                   :attributes => attributes,
                   :scope      => _ldap_scope) {|entry|
 
-            if paged.nil?
+            if rawfilter && !rawfilter.call(entry)
+                next
+            elsif paged.nil?
                 yield(converter.(entry))
             elsif skip > 0
                 skip -= 1
@@ -232,18 +256,29 @@ module Mapper
                 yield(converter.(entry))
             end                
         }
+
+        # Return self
+        self
     end
 
     def paginate(page, page_size)
         LOM::Filtered.new(src: self, paged: [ page, page_size ])
     end
   
-    def all
-        each(:object).to_a
+    # Retrieve matching data as a list of object
+    #
+    # @return [Array<Object>]
+    #
+    def all(&rawfilter)
+        each(:object, rawfilter: rawfilter).to_a
     end
 
-    def list
-        each(:id).to_a
+    # Retrieve matching data as a list of id
+    #
+    # @return [Array<String>]
+    #
+    def list(&rawfilter)
+        each(:id, rawfilter: rawfilter).to_a
     end
     
     def get(name)
