@@ -104,7 +104,13 @@ class User < Dry::Struct
         }
     end
     
+    ldap_list    :query,    ->(str) do
+        Filtered.match(:uid, str) |
+        Filtered.match(:cn,  str) |
+        Filtered.match(:givenName, str) | Filtered.match(:sn, str)
+    end
     
+
     #
     # Object structure
     #
