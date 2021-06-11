@@ -37,7 +37,8 @@ module InstanceMethods
     # @return [true, false]
     #
     def save!
-        attrs  = instance_exec(self, &self.class._ldap_to)
+        model  = self.class
+        attrs  = instance_exec(self, &model.ldap_to)
                      .transform_values {|v|
                           # Don't use Array(), not what you think on
                           # some classes such as Time
@@ -45,9 +46,9 @@ module InstanceMethods
                           v = [ v ] unless v.is_a?(Array)
                           v.to_ldap
                      }
-        id, _  = Array(attrs[self.class._ldap_prefix])
+        id, _  = Array(attrs[model.ldap_prefix])
         raise MappingError, 'prefix for dn has multiple values' if _
-        dn     = self.class.ldap_dn_from_id(id)
+        dn     = model.ldap_dn_from_id(id)
         
         lh.update(dn: dn, attributes: attrs).then {|res|
             break res unless res.nil?
@@ -126,11 +127,13 @@ module Mapper
     end
 
     
-    def ldap_branch(v)
+    def ldap_branch(v = nil)
+        return _ldap_branch if v.nil?
         @__ldap_branch = v
     end
     
-    def ldap_prefix(v)
+    def ldap_prefix(v = nil)
+        return _ldap_prefix if v.nil?
         @__ldap_prefix = v
     end
     
@@ -157,6 +160,8 @@ module Mapper
 
     # @note block will be executed in the mapped object instance
     def ldap_to(p=nil, &b)
+        return _ldap_to if p.nil? && b.nil?
+
         if (! p.nil? ^ b.nil?) || (p && !p.kind_of?(Proc))
             raise ArgumentError,
                   'one and only one of proc/lamba/block need to be defined'
@@ -167,9 +172,12 @@ module Mapper
 
     # Convert a dn to it's corresponding id the current mapping.
     #
-    # @raise [Error]   the provided dn doesn't belong to this mapping
+    # @raise [Error]   dn belongs to this mapping (it is in the mapping
+    #                  branch), but is malformed (not a direct child, or
+    #                  wrong prefix)
     #
     # @return [String] id
+    # @return [nil]    dn is not from this mapping
     #
     def ldap_dn_to_id(dn)
         prefix = _ldap_prefix.to_s
