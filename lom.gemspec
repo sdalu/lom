@@ -8,15 +8,13 @@ Gem::Specification.new do |s|
     s.summary     = "LDAP Object Mapper"
     s.description =  <<~EOF
       
-      Ease processing of parameters in Sinatra framework.
-      Integrates well with dry-types, sequel, ...
+      Creation of mapping between ldap entry and ruby object.
+      Allowing easy retrieval of information, building of search filter,
+      and updating ldap.
 
-      Example:
-        want! :user,    Dry::Types::String, User
-        want? :expired, Dry::Types::Params::Bool.default(true)
       EOF
 
-    s.homepage    = 'https://gitlab.com/sdalu/lom'
+    s.homepage    = 'https://github.com/sdalu/lom'
     s.license     = 'MIT'
 
     s.authors     = [ "Stéphane D'Alu" ]
