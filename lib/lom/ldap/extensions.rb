@@ -188,7 +188,7 @@ module Extensions
             if LOM.debug.include?(:dry)
                 return true
             end
-            return true if op.empty?                # That's a no-op
+            return true if ops.empty?               # That's a no-op
             modify(:dn => dn, :operations => ops)   # Apply modifications
         end       
     end
