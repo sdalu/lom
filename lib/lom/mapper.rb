@@ -296,8 +296,14 @@ module Mapper
     def list(&rawfilter)
         each(:id, rawfilter: rawfilter).to_a
     end
-    
-    def get(name)
+
+    # Fetch the requested entry.
+    #
+    # @raise [LOM::EntryNotFound] if entry not found
+    #
+    # @return [Object]
+    #
+    def fetch(name)
         dn    = ldap_dn_from_id(name)
         attrs = _ldap_attrs
         entry = lh.get(:dn => dn, :attributes => attrs)
@@ -308,6 +314,18 @@ module Mapper
     def delete!(name)
         dn    = ldap_dn_from_id(name)
         lh.delete(:dn => dn)
+    end
+
+    # Get the requested entry.
+    # Same as #fetch but return nil if not found
+    #
+    # @return [nil] entry not found
+    # @return [Object]
+    #
+    def get(name)
+        fetch(name)
+    rescue LOM::EntryNotFound
+        nil
     end
 
     alias [] get
