@@ -330,6 +330,17 @@ module Mapper
 
     alias [] get
 
+    # Test existence of entry
+    #
+    # @param param [String]  entry name
+    #
+    # @return [Boolean]
+    #
+    def exists?(name)
+        dn    = ldap_dn_from_id(name)
+        lh.get(:dn => dn, :return_result => false)
+    end
+
     private
     
     def _ldap_branch
