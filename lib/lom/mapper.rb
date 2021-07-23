@@ -299,6 +299,8 @@ module Mapper
 
     # Fetch the requested entry.
     #
+    # @param param [String]  entry name
+    #
     # @raise [LOM::EntryNotFound] if entry not found
     #
     # @return [Object]
@@ -318,6 +320,8 @@ module Mapper
 
     # Get the requested entry.
     # Same as #fetch but return nil if not found
+    #
+    # @param param [String]  entry name
     #
     # @return [nil] entry not found
     # @return [Object]
