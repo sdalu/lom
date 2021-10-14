@@ -56,6 +56,27 @@ module InstanceMethods
             lh.add(dn: dn, attributes: attrs)
         }
     end
+
+
+    # Delete object from ldap
+    #
+    # @return [true, false]
+    #
+    def delete!
+        model  = self.class
+        attrs  = instance_exec(self, &model.ldap_to)
+                     .transform_values {|v|
+                          # Don't use Array(), not what you think on
+                          # some classes such as Time
+                          v = [   ] if     v.nil? 
+                          v = [ v ] unless v.is_a?(Array)
+                          v.to_ldap
+                     }
+        id, _  = Array(attrs[model.ldap_prefix])
+        raise MappingError, 'prefix for dn has multiple values' if _
+
+        model.delete!(id)
+    end
 end
 end
 
