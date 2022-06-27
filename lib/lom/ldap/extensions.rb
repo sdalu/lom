@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+require 'uri'
 require 'net/ldap'
 require 'net/ldap/dn'
 
