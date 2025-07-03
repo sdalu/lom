@@ -49,7 +49,7 @@ module Converters
     
     refine Date do
         def to_ldap
-            self.to_time.to_ldap
+            self.strftime("%Y%m%d%H%M%SZ")
         end
     end
 
