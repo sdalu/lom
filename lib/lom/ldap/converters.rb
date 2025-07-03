@@ -10,25 +10,25 @@ module Converters
     #
     # Integer
     #
-    
+
     refine Integer do
         def to_ldap
             self.to_s
         end
     end
-    
+
     refine Integer.singleton_class do
         def from_ldap(v)
             Integer(v)
         end
     end
 
-    
+
 
     #
     # String
     #
-    
+
     refine String do
         def to_ldap
             self
@@ -41,12 +41,12 @@ module Converters
         end
     end
 
-    
+
 
     #
     # Date / Time
     #
-    
+
     refine Date do
         def to_ldap
             self.strftime("%Y%m%d%H%M%SZ")
@@ -74,12 +74,12 @@ module Converters
         end
     end
 
-   
+
 
     #
     # Boolean
     #
-    
+
     refine TrueClass do
         def to_ldap
             'TRUE'
@@ -96,20 +96,20 @@ module Converters
         def to_ldap
             'FALSE'
         end
-    end        
+    end
 
 
-    
+
     #
     # Array / Set
     #
-    
+
     refine Set do
         def to_ldap
             self.to_a.to_ldap
         end
     end
-    
+
     refine Array do
         def to_ldap
             self.map { |val|
