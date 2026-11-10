@@ -26,4 +26,5 @@ Gem::Specification.new do |s|
     s.add_dependency 'net-ldap'
     s.add_development_dependency 'yard', '~>0'
     s.add_development_dependency 'rake', '~>13'
+    s.add_development_dependency 'minitest', '~>5'
 end

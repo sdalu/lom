@@ -156,3 +156,46 @@ User.locked(true).manager('jdoe').list
 # Return list of users (as User instance)  without managers
 User.manager(false).all
 ~~~
+
+
+Threaded servers
+================
+
+A `Net::LDAP` handler is not thread safe: each operation stores its
+outcome in the handler itself, so two threads sharing a handler can
+read each other's result. When LOM is used from several threads
+(Puma, background jobs, ...), give it a callable instead of a
+handler: it is called once per thread (or fiber), and the handler it
+builds is reused by that thread.
+
+~~~ruby
+LH = -> { Net::LDAP.connect('ldap://127.0.0.1')
+                   .tap { it.auth 'uid=root,ou=Admins,dc=example,dc=com',
+                                  'foobar' } }
+~~~
+
+Without an opened connection, `Net::LDAP` connects and binds for each
+operation. `LOM.open` keeps a single connection for all the operations
+of its block; nested calls reuse it, and if the connection or bind
+fails the block still runs with one connection per operation. It only
+opens when the handler comes from a callable, as an opened connection
+must not be shared between threads.
+
+~~~ruby
+LOM.open { User.locked(true).all }
+~~~
+
+In a Rack application, a middleware gives one connection per request:
+
+~~~ruby
+class LDAPConnection
+    def initialize(app) = @app = app
+    def call(env)       = LOM.open { @app.call(env) }
+end
+
+use LDAPConnection
+~~~
+
+`LOM.open` only opens the handler of `LOM.lh`; a mapper given its own
+handler (`lh=` or its own `LH` constant) still uses one connection per
+operation.

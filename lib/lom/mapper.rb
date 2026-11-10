@@ -114,8 +114,12 @@ module Mapper
     # * the LH constant in this scope or parent scope
     # * the one provided by LOM.lh
     #
+    # If the handler is a callable, the handler built by it for the
+    # current thread is returned (see LOM.lh=).
+    #
     def lh
-        @__ldap_lh || const_get(:LH) || LOM.lh
+        LOM.materialize_lh(@__ldap_lh ||
+                           (const_defined?(:LH) && const_get(:LH)) || LOM.lh)
     end
 
     # Set the LDAP handler to use
