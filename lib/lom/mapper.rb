@@ -279,23 +279,30 @@ module Mapper
                       end
         
         # Perform search
-        lh.search(:base       => _ldap_branch,
-                  :filter     => filter,
-                  :attributes => attributes,
-                  :scope      => _ldap_scope) {|entry|
+        # Note: the search must not be left early (with break), as it
+        #       would leave unread results on a connection opened
+        #       by LOM.open; leaving it from the caller block is
+        #       handled by LOM.searching
+        h = lh
+        LOM.searching(h) {
+            h.search(:base       => _ldap_branch,
+                     :filter     => filter,
+                     :attributes => attributes,
+                     :scope      => _ldap_scope) {|entry|
 
-            if rawfilter && !rawfilter.call(entry)
-                next
-            elsif paged.nil?
-                yield(converter.(entry))
-            elsif skip > 0
-                skip -= 1
-            elsif count <= 0
-                break
-            else
-                count -= 1
-                yield(converter.(entry))
-            end                
+                if rawfilter && !rawfilter.call(entry)
+                    next
+                elsif paged.nil?
+                    yield(converter.(entry))
+                elsif skip > 0
+                    skip -= 1
+                elsif count <= 0
+                    next
+                else
+                    count -= 1
+                    yield(converter.(entry))
+                end                
+            }
         }
 
         # Return self

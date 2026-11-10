@@ -86,7 +86,8 @@ class LOM
             lh.open do
                 code = lh.get_operation_result.code
                 next unless code == Net::LDAP::ResultCodeSuccess
-                opened[lh] = entered = true
+                opened[lh] = { depth: 0, dirty: false }
+                entered    = true
                 begin
                     result = yield
                 ensure
@@ -97,6 +98,59 @@ class LOM
             raise if entered
         end
         entered ? result : yield
+    end
+
+    # Run the block performing a search on the handler.
+    #
+    # If the handler connection was opened by LOM.open and the search
+    # is left before completion (break, exception, ...), the unread
+    # search results would be kept until the end of LOM.open, so the
+    # connection is replaced by a new one, once no other search is
+    # using it.
+    #
+    # @api private
+    #
+    def self.searching(lh)
+        state = Thread.current[:__lom_opened]&.[](lh)
+        return yield if state.nil?
+
+        state[:depth] += 1
+        done = false
+        begin
+            yield.tap { done = true }
+        ensure
+            state[:depth] -= 1
+            state[:dirty] ||= !done
+            reopen(lh, state) if state[:dirty] && state[:depth].zero?
+        end
+    end
+
+    # Replace the connection opened by LOM.open with a new one.
+    # If it can't be opened and bound, operations fall back to
+    # one connection per operation.
+    #
+    # @note relies on Net::LDAP internals (@open_connection, @auth,
+    #       #new_connection) as used by Net::LDAP#open
+    #
+    # @api private
+    #
+    def self.reopen(lh, state)
+        state[:dirty] = false
+        begin
+            lh.instance_variable_get(:@open_connection)&.close
+        rescue StandardError
+        end
+        lh.instance_variable_set(:@open_connection, nil)
+
+        conn = lh.send(:new_connection)
+        res  = conn.bind(lh.instance_variable_get(:@auth))
+        if res.result_code == Net::LDAP::ResultCodeSuccess
+            lh.instance_variable_set(:@open_connection, conn)
+        else
+            conn.close
+        end
+    rescue Net::LDAP::Error, SystemCallError, IOError
+        conn&.close rescue nil
     end
 
     
